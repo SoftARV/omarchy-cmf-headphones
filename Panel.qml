@@ -124,7 +124,7 @@ Panel {
           spacing: Style.space(4)
 
           Text {
-            text: "cmf headphones pro"
+            text: "CMF Headphone Pro"
             font.family: root.brandFont
             font.pixelSize: Style.font.title
             color: (cmf.connected || cmf.restarting) ? root.foreground : root.dim
