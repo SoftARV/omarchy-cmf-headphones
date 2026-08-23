@@ -87,6 +87,7 @@ Panel {
         else if (k === "a") cmf.setAnc("anc")
         else if (k === "t") cmf.setAnc("transparency")
         else if (k === "o") cmf.setAnc("off")
+        else if (k === "l") cmf.setLdac(!cmf.displayLdac)
       }
 
       Column {
@@ -105,12 +106,13 @@ Panel {
             text: "cmf headphones pro"
             font.family: root.brandFont
             font.pixelSize: Style.font.title
-            color: cmf.connected ? root.foreground : root.dim
+            color: (cmf.connected || cmf.restarting) ? root.foreground : root.dim
           }
 
           Text {
             width: parent.width
             text: {
+              if (cmf.restarting) return "Restarting…"
               if (!cmf.connected) return "Not connected"
               var bits = []
               if (cmf.battery >= 0) bits.push(cmf.battery + "%")
@@ -145,6 +147,50 @@ Panel {
           foreground: root.foreground
           fontFamily: root.fontFamily
           onChanged: function (value) { cmf.setAnc(value) }
+        }
+
+        PanelSeparator { width: parent.width }
+
+        PanelSectionHeader {
+          width: parent.width
+          text: "Audio"
+          foreground: root.dim
+          fontFamily: root.fontFamily
+        }
+
+        RowLayout {
+          width: parent.width
+          spacing: Style.space(8)
+
+          Column {
+            Layout.fillWidth: true
+            spacing: Style.space(2)
+
+            Text {
+              text: "Hi-res audio (LDAC)"
+              font.family: root.fontFamily
+              font.pixelSize: Style.font.body
+              color: root.foreground
+            }
+
+            Text {
+              text: cmf.restarting ? "Headphones restarting to apply…"
+                                   : "Switching restarts the headphones"
+              font.family: root.fontFamily
+              font.pixelSize: Style.font.caption
+              color: root.dim
+            }
+          }
+
+          ToggleSwitch {
+            checked: cmf.displayLdac
+            // busy also blocks the click, so the restart cannot be interrupted
+            // by a second toggle mid-flight.
+            busy: cmf.restarting || cmf.busy
+            interactive: cmf.connected && !cmf.restarting
+            foreground: root.foreground
+            onToggled: cmf.setLdac(!cmf.displayLdac)
+          }
         }
 
         Text {

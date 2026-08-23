@@ -25,9 +25,17 @@ Item {
   // Set while a write is in flight so the UI shows the intended mode
   // immediately instead of waiting a poll cycle for the device to confirm.
   property string pendingAnc: ""
+  property int pendingLdac: -1       // -1 follow the device, else the value we asked for
+
+  // Writing the LDAC flag power-cycles the headphones: they announce power-off,
+  // restart and re-pair, which shows here as a ~6-9s disconnect. That gap is
+  // expected, not a fault, so it is tracked separately from "headphones are
+  // off" -- otherwise the panel would claim they are gone mid-restart.
+  property bool restarting: false
 
   readonly property bool busy: statusProc.running || actionProc.running
   readonly property string displayAnc: pendingAnc !== "" ? pendingAnc : anc
+  readonly property bool displayLdac: pendingLdac === -1 ? ldac : pendingLdac === 1
 
   // Mirrors of the stdio collectors: StdioCollector and onExited have no
   // guaranteed ordering, so reading collector.text alone can see an empty
@@ -69,6 +77,22 @@ Item {
     codec = String(parsed.codec || "")
     lastError = ""
     if (pendingAnc !== "" && anc === pendingAnc) pendingAnc = ""
+    if (pendingLdac !== -1 && ldac === (pendingLdac === 1)) {
+      pendingLdac = -1
+      restarting = false
+      restartGuard.stop()
+    }
+  }
+
+  function setLdac(on) {
+    // No dedicated cmfctl subcommand: the wrapper was shelved, so drive the
+    // command id directly. SET_LHDC_COMMANDS takes a single byte.
+    if (!connected || actionProc.running || restarting) return
+    pendingLdac = on ? 1 : 0
+    restarting = true
+    restartGuard.restart()
+    actionProc.command = ["cmfctl", "set", "SET_LHDC_COMMANDS", on ? "01" : "00"]
+    actionProc.running = true
   }
 
   function setAnc(mode) {
@@ -125,6 +149,17 @@ Item {
     onTriggered: root.refresh()
   }
 
+  // If the headphones never come back, stop claiming they are restarting.
+  Timer {
+    id: restartGuard
+    interval: 45000
+    repeat: false
+    onTriggered: {
+      root.restarting = false
+      root.pendingLdac = -1
+    }
+  }
+
   Timer {
     id: clearAction
     interval: 2500
@@ -158,6 +193,8 @@ Item {
         root.anc = ""
         root.codec = ""
         root.pendingAnc = ""
+        // pendingLdac and restarting deliberately survive: this disconnect is
+        // the restart we asked for, and they clear when the device returns.
         root.lastError = String(statusErr.text || root._statusErrText || "").trim()
       }
       root._statusText = ""
@@ -174,6 +211,9 @@ Item {
     onExited: function (exitCode) {
       if (exitCode !== 0) {
         root.pendingAnc = ""
+        root.pendingLdac = -1
+        root.restarting = false
+        restartGuard.stop()
         root.actionStatus = String(actionErr.text || "Command failed").trim()
         clearAction.restart()
       }

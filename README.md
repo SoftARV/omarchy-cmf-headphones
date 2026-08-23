@@ -38,9 +38,14 @@ the existing widget instance, so geometry changes appear not to apply.
 | `activePollSec` | 5 | refresh interval while it is open |
 | `showBattery` | true | reserved; the bar currently shows the mark only |
 
+Toggling LDAC restarts the headphones — they power-cycle to apply the codec
+change and re-pair themselves after ~6-9 seconds. The panel shows "Restarting…"
+for that window rather than reporting them as disconnected, and the switch is
+held inert until they return.
+
 ## Keys, while the popup is focused
 
-`a` ANC · `t` transparency · `o` off · `r` refresh
+`a` ANC · `t` transparency · `o` off · `l` toggle LDAC · `r` refresh
 
 ## Notes
 
