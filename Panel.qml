@@ -115,7 +115,10 @@ Panel {
               var bits = []
               if (cmf.battery >= 0) bits.push(cmf.battery + "%")
               if (cmf.displayAnc !== "") bits.push(root.ancLabel(cmf.displayAnc))
-              bits.push(cmf.ldac ? "LDAC" : "AAC")
+              // The negotiated codec, not the LDAC flag -- the flag only says
+              // the headphones will offer it.
+              if (cmf.codec !== "") bits.push(cmf.codec.toUpperCase())
+              else if (cmf.ldac) bits.push("LDAC")
               return bits.join("   ·   ")
             }
             font.family: root.fontFamily

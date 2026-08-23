@@ -17,7 +17,8 @@ Item {
   property bool connected: false
   property int battery: -1
   property string anc: ""            // "anc" | "off" | "transparency"
-  property bool ldac: false          // read-only status; the toggle lives in the CLI
+  property bool ldac: false          // the device flag: will it *offer* LDAC
+  property string codec: ""          // what host and device actually negotiated
   property string lastError: ""
   property string actionStatus: ""
 
@@ -65,6 +66,7 @@ Item {
     battery = parsed.battery === null || parsed.battery === undefined ? -1 : Number(parsed.battery)
     anc = String(parsed.anc || "")
     ldac = parsed.ldac === true
+    codec = String(parsed.codec || "")
     lastError = ""
     if (pendingAnc !== "" && anc === pendingAnc) pendingAnc = ""
   }
@@ -92,6 +94,33 @@ Item {
   Timer {
     id: settle
     interval: 900
+    repeat: false
+    onTriggered: root.refresh()
+  }
+
+  // BlueZ announces connect/disconnect and A2DP transport changes on D-Bus.
+  // Watching them means the widget reacts the moment the headphones come back
+  // instead of waiting out the poll interval. A blocked read also keeps the CPU
+  // in deeper idle states than a fast timer would.
+  Process {
+    id: btMonitor
+    running: true
+    command: ["gdbus", "monitor", "--system", "--dest", "org.bluez"]
+    stdout: SplitParser {
+      onRead: function (line) {
+        var l = String(line)
+        if (l.indexOf("'Connected'") >= 0 || l.indexOf("MediaTransport1") >= 0
+            || l.indexOf("InterfacesAdded") >= 0 || l.indexOf("InterfacesRemoved") >= 0)
+          debounce.restart()
+      }
+    }
+  }
+
+  // A connect emits a burst of signals; coalesce them, and give the transport a
+  // moment to finish negotiating before asking what codec it settled on.
+  Timer {
+    id: debounce
+    interval: 1500
     repeat: false
     onTriggered: root.refresh()
   }
@@ -127,6 +156,7 @@ Item {
         root.connected = false
         root.battery = -1
         root.anc = ""
+        root.codec = ""
         root.pendingAnc = ""
         root.lastError = String(statusErr.text || root._statusErrText || "").trim()
       }
