@@ -42,10 +42,11 @@ Panel {
 
   // Shown only while ANC is active, mirroring the phone app: the four levels
   // are meaningless in transparency or off.
+  // Ordered low -> high then adaptive, as the phone app presents them.
   readonly property var levelOptions: [
-    { label: "High", value: "high" },
-    { label: "Mid", value: "mid" },
     { label: "Low", value: "low" },
+    { label: "Mid", value: "mid" },
+    { label: "High", value: "high" },
     { label: "Adaptive", value: "adaptive" }
   ]
   readonly property bool ancActive: ancLevels.indexOf(cmf.displayAnc) >= 0

@@ -47,7 +47,7 @@ held inert until they return.
 
 `a` ANC · `t` transparency · `o` off · `l` toggle LDAC · `r` refresh
 
-While ANC is active a second row picks the level — High, Mid, Low, Adaptive.
+While ANC is active a second row picks the level — Low, Mid, High, Adaptive.
 It is hidden in transparency and off, where the levels mean nothing, matching
 the phone app.
 
