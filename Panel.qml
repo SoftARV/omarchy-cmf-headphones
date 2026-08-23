@@ -40,12 +40,22 @@ Panel {
   // stays lit; the exact level is shown in the header line instead.
   readonly property var ancLevels: ["high", "mid", "low", "adaptive"]
 
+  // Shown only while ANC is active, mirroring the phone app: the four levels
+  // are meaningless in transparency or off.
+  readonly property var levelOptions: [
+    { label: "High", value: "high" },
+    { label: "Mid", value: "mid" },
+    { label: "Low", value: "low" },
+    { label: "Adaptive", value: "adaptive" }
+  ]
+  readonly property bool ancActive: ancLevels.indexOf(cmf.displayAnc) >= 0
+
   function ancGroupValue(v) {
     return ancLevels.indexOf(v) >= 0 ? "anc" : v
   }
 
   function ancLabel(v) {
-    if (ancLevels.indexOf(v) >= 0) return "ANC " + v
+    if (ancLevels.indexOf(v) >= 0) return "ANC"
     for (var i = 0; i < ancOptions.length; i++)
       if (ancOptions[i].value === v) return ancOptions[i].label
     return v
@@ -83,7 +93,7 @@ Panel {
     bar: root.bar
     open: root.opened
     focusTarget: keyCatcher
-    contentWidth: panel.fittedContentWidth(Style.space(320))
+    contentWidth: panel.fittedContentWidth(Style.space(360))
     contentHeight: panel.fittedContentHeight(column.implicitHeight, Style.space(400))
 
     PanelKeyCatcher {
@@ -156,6 +166,18 @@ Panel {
           value: root.ancGroupValue(cmf.displayAnc)
           foreground: root.foreground
           fontFamily: root.fontFamily
+          onChanged: function (value) { cmf.setAnc(value) }
+        }
+
+        ButtonGroup {
+          width: parent.width
+          visible: root.ancActive && cmf.connected
+          enabled: cmf.connected
+          options: root.levelOptions
+          value: cmf.displayAnc
+          foreground: root.foreground
+          fontFamily: root.fontFamily
+          fontSize: Style.font.bodySmall
           onChanged: function (value) { cmf.setAnc(value) }
         }
 

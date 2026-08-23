@@ -47,6 +47,10 @@ held inert until they return.
 
 `a` ANC · `t` transparency · `o` off · `l` toggle LDAC · `r` refresh
 
+While ANC is active a second row picks the level — High, Mid, Low, Adaptive.
+It is hidden in transparency and off, where the levels mean nothing, matching
+the phone app.
+
 ## Notes
 
 State is gathered with a single `cmfctl status --json` call. Each invocation
