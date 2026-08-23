@@ -8,7 +8,7 @@ so it takes the bar's foreground colour and dims when the headphones are off.
 
 ## Requires
 
-**[cmfctl](https://github.com/miguelrincon/cmfctl)** on `PATH` — it owns the
+**[cmfctl](https://github.com/SoftARV/cmfctl)** on `PATH` — it owns the
 Bluetooth protocol; this widget only renders what it reports.
 
 ```bash
