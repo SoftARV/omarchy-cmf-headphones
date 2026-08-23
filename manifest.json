@@ -1,0 +1,53 @@
+{
+  "schemaVersion": 1,
+  "id": "nec.cmf-headphones",
+  "name": "CMF Headphones",
+  "version": "0.1.0",
+  "author": "nec",
+  "license": "MIT",
+  "description": "Battery, ANC mode, LDAC, spatial audio and EQ for a CMF Headphone Pro, driven by the cmfctl CLI over Bluetooth RFCOMM.",
+  "kinds": [
+    "bar-widget"
+  ],
+  "entryPoints": {
+    "barWidget": "Panel.qml"
+  },
+  "barWidget": {
+    "displayName": "CMF Headphones",
+    "description": "Shows battery and ANC mode; switches ANC, LDAC, spatial audio and EQ without the phone app.",
+    "category": "Audio",
+    "allowMultiple": false,
+    "defaultSection": "right",
+    "defaults": {
+      "idlePollSec": 120,
+      "activePollSec": 5,
+      "showBattery": true
+    },
+    "schema": [
+      {
+        "key": "idlePollSec",
+        "type": "integer",
+        "label": "Refresh interval while the panel is closed (seconds)",
+        "min": 15,
+        "max": 900,
+        "step": 15,
+        "defaultValue": 120
+      },
+      {
+        "key": "activePollSec",
+        "type": "integer",
+        "label": "Refresh interval while the panel is open (seconds)",
+        "min": 2,
+        "max": 60,
+        "step": 1,
+        "defaultValue": 5
+      },
+      {
+        "key": "showBattery",
+        "type": "boolean",
+        "label": "Show the battery percentage next to the icon",
+        "defaultValue": true
+      }
+    ]
+  }
+}

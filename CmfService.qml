@@ -1,0 +1,153 @@
+import QtQuick
+import Quickshell
+import Quickshell.Io
+
+// State for a CMF Headphone Pro, read through the `cmfctl` CLI.
+//
+// Every cmfctl invocation opens a fresh RFCOMM link and the connect dominates
+// the cost, so state is gathered with a single `status --json` call rather than
+// one call per value. Back-to-back connects can also hit EBUSY, which is a
+// second reason not to fan out.
+Item {
+  id: root
+
+  property var settings: ({})
+  property bool panelOpen: false
+
+  property bool connected: false
+  property int battery: -1
+  property string anc: ""            // "anc" | "off" | "transparency"
+  property bool ldac: false          // read-only status; the toggle lives in the CLI
+  property string lastError: ""
+  property string actionStatus: ""
+
+  // Set while a write is in flight so the UI shows the intended mode
+  // immediately instead of waiting a poll cycle for the device to confirm.
+  property string pendingAnc: ""
+
+  readonly property bool busy: statusProc.running || actionProc.running
+  readonly property string displayAnc: pendingAnc !== "" ? pendingAnc : anc
+
+  // Mirrors of the stdio collectors: StdioCollector and onExited have no
+  // guaranteed ordering, so reading collector.text alone can see an empty
+  // string on a perfectly good run.
+  property string _statusText: ""
+  property string _statusErrText: ""
+
+  function setting(name, fallback) {
+    var v = settings ? settings[name] : undefined
+    return v === undefined || v === null ? fallback : v
+  }
+
+  function intSetting(name, fallback, min, max) {
+    var n = parseInt(String(setting(name, fallback)), 10)
+    if (!isFinite(n)) n = fallback
+    return Math.max(min, Math.min(max, n))
+  }
+
+  readonly property int idlePollSec: intSetting("idlePollSec", 120, 15, 900)
+  readonly property int activePollSec: intSetting("activePollSec", 5, 2, 60)
+
+  function refresh() {
+    if (statusProc.running) return
+    statusProc.running = true
+  }
+
+  function applyStatus(raw) {
+    var parsed
+    try {
+      parsed = JSON.parse(String(raw || ""))
+    } catch (e) {
+      lastError = "Could not parse cmfctl output"
+      return
+    }
+    connected = true
+    battery = parsed.battery === null || parsed.battery === undefined ? -1 : Number(parsed.battery)
+    anc = String(parsed.anc || "")
+    ldac = parsed.ldac === true
+    lastError = ""
+    if (pendingAnc !== "" && anc === pendingAnc) pendingAnc = ""
+  }
+
+  function setAnc(mode) {
+    if (!connected || actionProc.running) return
+    pendingAnc = mode
+    actionProc.command = ["cmfctl", "anc", mode]
+    actionProc.running = true
+  }
+
+  Component.onCompleted: refresh()
+
+  Timer {
+    id: poll
+    interval: (root.panelOpen ? root.activePollSec : root.idlePollSec) * 1000
+    repeat: true
+    running: true
+    triggeredOnStart: true
+    onTriggered: root.refresh()
+  }
+
+  // Poll shortly after a write so the panel reflects reality quickly without
+  // shortening the whole cycle.
+  Timer {
+    id: settle
+    interval: 900
+    repeat: false
+    onTriggered: root.refresh()
+  }
+
+  Timer {
+    id: clearAction
+    interval: 2500
+    repeat: false
+    onTriggered: root.actionStatus = ""
+  }
+
+  Process {
+    id: statusProc
+    running: false
+    command: ["cmfctl", "status", "--json"]
+    stdout: StdioCollector {
+      id: statusOut
+      waitForEnd: true
+      onStreamFinished: root._statusText = String(text || "")
+    }
+    stderr: StdioCollector {
+      id: statusErr
+      waitForEnd: true
+      onStreamFinished: root._statusErrText = String(text || "")
+    }
+    onExited: function (exitCode) {
+      var out = String(statusOut.text || root._statusText || "")
+      if (exitCode === 0 && out.trim() !== "") {
+        root.applyStatus(out)
+      } else if (exitCode !== 0) {
+        // cmfctl exits non-zero when no CMF device is connected. That is the
+        // normal "headphones are off" case, not an error worth shouting about.
+        root.connected = false
+        root.battery = -1
+        root.anc = ""
+        root.pendingAnc = ""
+        root.lastError = String(statusErr.text || root._statusErrText || "").trim()
+      }
+      root._statusText = ""
+      root._statusErrText = ""
+    }
+  }
+
+  Process {
+    id: actionProc
+    running: false
+    command: []
+    stdout: StdioCollector { id: actionOut; waitForEnd: true }
+    stderr: StdioCollector { id: actionErr; waitForEnd: true }
+    onExited: function (exitCode) {
+      if (exitCode !== 0) {
+        root.pendingAnc = ""
+        root.actionStatus = String(actionErr.text || "Command failed").trim()
+        clearAction.restart()
+      }
+      settle.restart()
+    }
+  }
+}
