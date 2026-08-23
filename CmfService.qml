@@ -76,7 +76,13 @@ Item {
     ldac = parsed.ldac === true
     codec = String(parsed.codec || "")
     lastError = ""
-    if (pendingAnc !== "" && anc === pendingAnc) pendingAnc = ""
+    // Requesting "anc" is an alias for "high", but the device may answer with
+    // whichever level it restored, so any level clears a pending "anc".
+    var levels = ["high", "mid", "low", "adaptive"]
+    if (pendingAnc !== ""
+        && (anc === pendingAnc
+            || (pendingAnc === "anc" && levels.indexOf(anc) >= 0)))
+      pendingAnc = ""
     if (pendingLdac !== -1 && ldac === (pendingLdac === 1)) {
       pendingLdac = -1
       restarting = false

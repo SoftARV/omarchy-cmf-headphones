@@ -35,7 +35,17 @@ Panel {
     { label: "Off", value: "off" }
   ]
 
+  // cmfctl reports the ANC level (high/mid/low/adaptive), while this group
+  // offers a single "ANC" button. Fold the levels onto it so the right button
+  // stays lit; the exact level is shown in the header line instead.
+  readonly property var ancLevels: ["high", "mid", "low", "adaptive"]
+
+  function ancGroupValue(v) {
+    return ancLevels.indexOf(v) >= 0 ? "anc" : v
+  }
+
   function ancLabel(v) {
+    if (ancLevels.indexOf(v) >= 0) return "ANC " + v
     for (var i = 0; i < ancOptions.length; i++)
       if (ancOptions[i].value === v) return ancOptions[i].label
     return v
@@ -143,7 +153,7 @@ Panel {
           enabled: cmf.connected
           opacity: cmf.connected ? 1.0 : 0.45
           options: root.ancOptions
-          value: cmf.displayAnc
+          value: root.ancGroupValue(cmf.displayAnc)
           foreground: root.foreground
           fontFamily: root.fontFamily
           onChanged: function (value) { cmf.setAnc(value) }
