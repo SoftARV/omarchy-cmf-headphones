@@ -97,6 +97,21 @@ else
   fi
 fi
 
+# --- the dependency --------------------------------------------------------
+# The widget renders what cmfctl reports and does nothing without it, so point
+# at the fix here rather than leaving it to be discovered from the popup.
+if ! command -v cmfctl >/dev/null 2>&1; then
+  warn "cmfctl is not on PATH; the widget will say so and little else"
+  if [[ -x $REPO/scripts/install-deps.sh ]]; then
+    say "installing it now"
+    if "$REPO/scripts/install-deps.sh"; then
+      :
+    else
+      warn "could not install cmfctl; run scripts/install-deps.sh by hand"
+    fi
+  fi
+fi
+
 # --- tell the shell --------------------------------------------------------
 if command -v omarchy-shell >/dev/null 2>&1; then
   omarchy-shell shell rescanPlugins >/dev/null 2>&1 || true

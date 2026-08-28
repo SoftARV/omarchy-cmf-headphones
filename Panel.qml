@@ -133,6 +133,11 @@ Panel {
           Text {
             width: parent.width
             text: {
+              // Ordered by how specific the diagnosis is. A missing CLI looks
+              // exactly like absent headphones from here, and saying "not
+              // connected" would send someone to their Bluetooth settings for
+              // a problem that is not there.
+              if (cmf.cmfctlMissing) return "cmfctl not found on PATH"
               if (cmf.restarting) return "Restarting…"
               if (!cmf.connected) return "Not connected"
               var bits = []
@@ -148,12 +153,40 @@ Panel {
             font.pixelSize: Style.font.caption
             color: root.dim
           }
+
+          // Selectable, because the whole point is that it gets copied. A path
+          // you have to retype from a screenshot is barely an instruction.
+          TextEdit {
+            width: parent.width
+            visible: cmf.cmfctlMissing
+            text: "~/.config/omarchy/plugins/softarv.cmf-headphones/scripts/install-deps.sh"
+            readOnly: true
+            selectByMouse: true
+            wrapMode: TextEdit.WrapAnywhere
+            font.family: root.fontFamily
+            font.pixelSize: Style.font.caption
+            color: root.foreground
+          }
+
+          Text {
+            width: parent.width
+            visible: cmf.cmfctlMissing
+            text: "This widget renders what cmfctl reports; it has no protocol of its own."
+            wrapMode: Text.WordWrap
+            font.family: root.fontFamily
+            font.pixelSize: Style.font.caption
+            color: root.dim
+          }
         }
 
-        PanelSeparator { width: parent.width }
+        PanelSeparator {
+          width: parent.width
+          visible: !cmf.cmfctlMissing
+        }
 
         PanelSectionHeader {
           width: parent.width
+          visible: !cmf.cmfctlMissing
           text: "Noise control"
           foreground: root.dim
           fontFamily: root.fontFamily
@@ -161,6 +194,10 @@ Panel {
 
         ButtonGroup {
           width: parent.width
+          // Hidden rather than greyed out: a disabled control implies the
+          // headphones are the obstacle, when in fact nothing is installed to
+          // drive them.
+          visible: !cmf.cmfctlMissing
           enabled: cmf.connected
           opacity: cmf.connected ? 1.0 : 0.45
           options: root.ancOptions
@@ -172,7 +209,7 @@ Panel {
 
         ButtonGroup {
           width: parent.width
-          visible: root.ancActive && cmf.connected
+          visible: root.ancActive && cmf.connected && !cmf.cmfctlMissing
           enabled: cmf.connected
           options: root.levelOptions
           value: cmf.displayAnc
@@ -182,10 +219,14 @@ Panel {
           onChanged: function (value) { cmf.setAnc(value) }
         }
 
-        PanelSeparator { width: parent.width }
+        PanelSeparator {
+          width: parent.width
+          visible: !cmf.cmfctlMissing
+        }
 
         PanelSectionHeader {
           width: parent.width
+          visible: !cmf.cmfctlMissing
           text: "Audio"
           foreground: root.dim
           fontFamily: root.fontFamily
@@ -193,6 +234,7 @@ Panel {
 
         RowLayout {
           width: parent.width
+          visible: !cmf.cmfctlMissing
           spacing: Style.space(8)
 
           Column {
