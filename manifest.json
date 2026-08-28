@@ -5,7 +5,7 @@
   "version": "0.1.0",
   "author": "Miguel Rincon",
   "license": "MIT",
-  "description": "Battery, ANC mode, LDAC, spatial audio and EQ for a CMF Headphone Pro, driven by the cmfctl CLI over Bluetooth RFCOMM.",
+  "description": "Battery, noise mode and LDAC for a CMF Headphone Pro, driven by the cmfctl CLI over Bluetooth RFCOMM.",
   "kinds": [
     "bar-widget"
   ],
@@ -14,14 +14,13 @@
   },
   "barWidget": {
     "displayName": "CMF Headphones",
-    "description": "Shows battery and ANC mode; switches ANC, LDAC, spatial audio and EQ without the phone app.",
+    "description": "Shows battery and noise mode; switches all six noise modes and LDAC without the phone app.",
     "category": "Audio",
     "allowMultiple": false,
     "defaultSection": "right",
     "defaults": {
       "idlePollSec": 120,
-      "activePollSec": 5,
-      "showBattery": true
+      "activePollSec": 5
     },
     "schema": [
       {
@@ -31,7 +30,8 @@
         "min": 15,
         "max": 900,
         "step": 15,
-        "defaultValue": 120
+        "defaultValue": 120,
+        "description": "How often to ask the headphones for battery and noise mode while the popup is shut. Each check opens a Bluetooth link, so a long interval costs less power."
       },
       {
         "key": "activePollSec",
@@ -40,13 +40,8 @@
         "min": 2,
         "max": 60,
         "step": 1,
-        "defaultValue": 5
-      },
-      {
-        "key": "showBattery",
-        "type": "boolean",
-        "label": "Show the battery percentage next to the icon",
-        "defaultValue": true
+        "defaultValue": 5,
+        "description": "How often to refresh while the popup is open, so a change made elsewhere shows up quickly."
       }
     ]
   }

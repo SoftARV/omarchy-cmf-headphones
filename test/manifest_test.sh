@@ -154,13 +154,46 @@ while IFS= read -r key; do
   grep -qF "$key" "$ROOT"/*.qml 2>/dev/null || unread+=("$key")
 done < <(jq -r '(.barWidget.schema // [])[]?.key' "$MANIFEST")
 
-# Skips rather than fails while a known offender is outstanding, so the debt
-# is visible in the summary instead of blocking the suite. T9 turns this into
-# a hard failure once showBattery is either wired up or removed.
 if (( ${#unread[@]} == 0 )); then
   pass "every settings key is read by the QML"
 else
-  skip "T9" "settings keys declared but never read: ${unread[*]}"
+  fail "every settings key is read by the QML" \
+       "declared but never read: ${unread[*]}"
+fi
+
+# defaults and schema describe the same set of keys. A key in one and not the
+# other is how a removed setting leaves a default behind that nothing consumes,
+# or a new one ships with no value until the user opens the settings panel.
+schema_keys=$(jq -r '[(.barWidget.schema // [])[].key] | sort | join(",")' "$MANIFEST")
+default_keys=$(jq -r '[(.barWidget.defaults // {}) | keys[]] | sort | join(",")' "$MANIFEST")
+assert_eq "$schema_keys" "$default_keys" "defaults and schema declare the same keys"
+
+# Every first-party manifest gives each key a description; the settings panel
+# has room for it and a bare label leaves the user guessing at units.
+undescribed=$(jq -r '[(.barWidget.schema // [])[] | select(has("description") | not) | .key] | join(" ")' "$MANIFEST")
+if [[ -z $undescribed ]]; then
+  pass "every settings key carries a description"
+else
+  fail "every settings key carries a description" "missing on: $undescribed"
+fi
+
+# A description is the only thing most people read before installing. Naming a
+# capability the widget has no control for is the same mistake as shipping a
+# settings key nothing reads -- both were true here at once.
+overclaimed=()
+descriptions=$(jq -r '[.description, .barWidget.description] | join(" ")' "$MANIFEST")
+for capability in spatial EQ equali; do
+  if grep -qi "$capability" <<<"$descriptions" &&
+     ! grep -qil "$capability" "$ROOT"/*.qml >/dev/null 2>&1; then
+    overclaimed+=("$capability")
+  fi
+done
+
+if (( ${#overclaimed[@]} == 0 )); then
+  pass "the descriptions claim nothing the QML cannot do"
+else
+  fail "the descriptions claim nothing the QML cannot do" \
+       "advertised with no control: ${overclaimed[*]}"
 fi
 
 # --- no symlinks -----------------------------------------------------------
