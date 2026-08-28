@@ -1,9 +1,9 @@
 {
   "schemaVersion": 1,
-  "id": "nec.cmf-headphones",
+  "id": "softarv.cmf-headphones",
   "name": "CMF Headphones",
   "version": "0.1.0",
-  "author": "nec",
+  "author": "Miguel Rincon",
   "license": "MIT",
   "description": "Battery, ANC mode, LDAC, spatial audio and EQ for a CMF Headphone Pro, driven by the cmfctl CLI over Bluetooth RFCOMM.",
   "kinds": [

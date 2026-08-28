@@ -115,6 +115,35 @@ else
   fail "defaultSection is a real bar section"
 fi
 
+# --- the id, everywhere it is repeated -------------------------------------
+# The manifest is not the only place it appears. Panel.qml names it twice, as
+# moduleName and as ipcTarget, and the README tells people to type it. A rename
+# that misses one of those is silent: the plugin loads, and `omarchy-shell <id>
+# toggle` addresses something that no longer exists.
+for prop in moduleName ipcTarget; do
+  declared=$(grep -oE "^[[:space:]]*$prop:[[:space:]]*\"[^\"]+\"" "$ROOT/Panel.qml" |
+    head -1 | sed -E 's/.*"([^"]+)".*/\1/')
+  if [[ $declared == "$id" ]]; then
+    pass "Panel.qml $prop matches the manifest id"
+  else
+    fail "Panel.qml $prop matches the manifest id" \
+         "manifest: $id" "Panel.qml: ${declared:-<not found>}"
+  fi
+done
+
+if grep -q "$id" "$ROOT/README.md" 2>/dev/null; then
+  pass "the README names the current id"
+else
+  fail "the README names the current id" "no occurrence of $id in README.md"
+fi
+
+# Every plugin id on this system is lowercase, and ids are compared literally.
+if [[ $id == "${id,,}" ]]; then
+  pass "the id is lowercase"
+else
+  fail "the id is lowercase" "got: $id"
+fi
+
 # --- settings schema -------------------------------------------------------
 # A key the QML never reads is a switch in the user's settings panel that does
 # nothing. The shell hands every field on the entry straight to the plugin, so

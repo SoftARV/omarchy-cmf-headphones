@@ -10,11 +10,11 @@ import qs.Ui
 //
 // The device speaks Nothing's RFCOMM protocol on channel 28; everything here
 // goes through the `cmfctl` CLI, which owns that protocol. See
-// ~/Projects/cmfctl/FINDINGS.md.
+// https://github.com/SoftARV/cmfctl/blob/main/docs/FINDINGS.md.
 Panel {
   id: root
-  moduleName: "nec.cmf-headphones"
-  ipcTarget: "nec.cmf-headphones"
+  moduleName: "softarv.cmf-headphones"
+  ipcTarget: "softarv.cmf-headphones"
   manageIpc: true
 
   // The brand's dot-matrix face, installed at
