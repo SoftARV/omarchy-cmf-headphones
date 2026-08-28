@@ -3,7 +3,7 @@
 Battery, active noise mode and LDAC status for a **CMF Headphone Pro** in the
 Omarchy bar, with noise control in the popup. No phone app involved.
 
-![The popup: battery, noise control and the LDAC switch](preview.png)
+![The bar icon and popup: battery, the six noise modes, and the LDAC switch](preview.png)
 
 The bar icon is Nothing's dot-matrix headphone mark, drawn as real QML circles
 so it takes the bar's foreground colour and dims when the headphones are off.
