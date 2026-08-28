@@ -6,7 +6,8 @@ Omarchy bar, with noise control in the popup. No phone app involved.
 ![The bar icon and popup: battery, the six noise modes, and the LDAC switch](preview.png)
 
 The bar icon is Nothing's dot-matrix headphone mark, drawn as real QML circles
-so it takes the bar's foreground colour and dims when the headphones are off.
+so it takes the bar's foreground colour. It appears when the headphones connect
+and collapses when they go, so the bar carries nothing while they are in a bag.
 
 ## Requires
 
@@ -69,6 +70,20 @@ the phone app.
 The bar shows the mark alone. Battery, noise mode and codec are in the popup,
 where there is room for them.
 
+## When the mark is not there
+
+No mark means the headphones are not connected, and the widget is taking up no
+room in the bar. It comes back on its own within a second or two of them
+connecting — that is BlueZ announcing the connection, not the poll interval.
+
+It stays visible in two cases where the headphones are also absent. If `cmfctl`
+is not installed the mark remains, because the popup is the only place that
+says so and gives you the command that fixes it. And it remains through the
+LDAC power-cycle below, so the switch you just flipped does not erase itself.
+
+While hidden there is no button to click, and
+`omarchy-shell softarv.cmf-headphones toggle` does nothing for the same reason.
+
 ## Notes
 
 Toggling LDAC restarts the headphones — they power-cycle to apply the codec
@@ -123,6 +138,7 @@ and `omarchy plugin update` still works.
 | `NothingHeadphoneIcon.qml` | the dot-matrix mark |
 | `install.sh` | copies the runtime files into place |
 | `test/run.sh` | the test suite |
+| `docs/SPEC.md` | the spec behind the current change |
 
 ## Licence
 

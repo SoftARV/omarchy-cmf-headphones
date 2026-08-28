@@ -142,6 +142,18 @@ else
        "expected a visible: binding on cmfctlMissing"
 fi
 
+# The bar mark collapses when the headphones are away, but not when the CLI is
+# the thing that is missing: `connected` is false forever without it, and this
+# popup is the only place naming the dependency and the path that installs it.
+# Hiding the mark too would leave no way back to this text. test/bar_test.sh
+# owns the rest of that condition.
+if grep -qE '^\s*readonly property bool present:.*cmfctlMissing' "$ROOT/Panel.qml"; then
+  pass "the bar mark survives a missing CLI, so this popup stays reachable"
+else
+  fail "the bar mark survives a missing CLI, so this popup stays reachable" \
+       "expected cmfctlMissing in the present condition"
+fi
+
 # The distinction this whole task exists to preserve.
 assert_contains "$panel" "Not connected" \
   "the headphones-are-off message still exists for its own case"

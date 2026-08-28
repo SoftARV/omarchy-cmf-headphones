@@ -10,6 +10,25 @@ versions.
 
 ## [Unreleased]
 
+### Changed
+
+- **The bar mark appears only when there is something to report.** It used to
+  hold its slot permanently, dimmed while the headphones were off; for a pair
+  that spends most of the day in a bag that is a lit icon reporting nothing.
+  It now collapses when they disconnect and the bar closes the gap, returning
+  within a second or two of them connecting — BlueZ announces that, so it does
+  not wait out the poll interval. Two states keep it on screen anyway: a
+  missing `cmfctl`, because the popup is the only place that names the
+  dependency and carries the path that installs it, and the LDAC power-cycle,
+  so the switch that caused the disconnect does not erase itself. An open
+  popup closes with the mark, and `omarchy-shell <id> toggle` is inert while
+  it is hidden.
+
+### Added
+
+- **`docs/SPEC.md`.** Specs now live under `docs/`, matching the layout of the
+  sibling `cmfctl` repo.
+
 ## [0.1.0] - 2026-08-28
 
 Battery, noise mode and LDAC for a CMF Headphone Pro in the Omarchy bar, with
