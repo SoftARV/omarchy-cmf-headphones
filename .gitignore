@@ -1,1 +1,24 @@
+# Local screen captures taken while working on the widget.
 *.png
+# ...except the one the plugin listing shows. Every third-party plugin ships
+# a preview, and a blanket *.png rule silently swallows it.
+!preview.png
+
+# Editors / OS
+.vscode/
+.idea/
+*.swp
+*~
+.DS_Store
+
+# Local scratch
+tmp/
+scratch/
+*.log
+
+# Test scratch lives in $TMPDIR, never here. omarchy-plugin-validate refuses a
+# plugin folder containing any symlink anywhere beneath it, so a test that
+# writes into the tree can make the whole plugin fail validation depending on
+# which order files ran in. Kept so an older checkout stays clean.
+test/.out/
+test/**/*.actual
