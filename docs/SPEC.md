@@ -186,7 +186,9 @@ re-runs and a change looks like it did not work.
 - Headphones off → no mark in the bar, no gap.
 - Turn them on → mark appears within the BlueZ debounce (~1.5s), not a poll.
 - Turn them off with the popup open → popup closes, mark goes.
-- Flip LDAC → mark and popup **stay** for the whole 6–9s restart.
+- Flip LDAC → mark and popup **stay** for the whole 6–9s restart. Verified on
+  hardware across three flips in both directions; `restarting` held for ~9s
+  each time, where before the fix it collapsed at t+1s.
 - `mv $(command -v cmfctl){,.bak}` → mark stays, popup names the missing CLI.
 
 ## 7. Boundaries
@@ -202,8 +204,14 @@ re-runs and a change looks like it did not work.
 
 **Ask first**
 
-- Any change to `CmfService.qml`. This spec should not need one; if it does,
-  the design is wrong and worth re-reading before typing.
+- Any change to `CmfService.qml`. **Asked and granted once**: hardware testing
+  showed `restarting` was being cleared about a second after the LDAC write,
+  before the power-cycle it was meant to cover had even begun, so the `present`
+  term below had nothing to hold the mark up. That is a latent `0.1.0` bug this
+  feature exposed rather than caused — it also broke the "Restarting…" caption
+  and the inert switch the README promises. Fixed by requiring that a
+  disconnect was actually observed before a confirmation is believed. Any
+  *further* change to this file needs asking again.
 - Dropping the `restarting` row from §2.
 - Adding a setting after all.
 
@@ -226,7 +234,8 @@ re-runs and a change looks like it did not work.
 - [x] The organization this work carries is written down, and what it defers
       says why — §4b.
 - [x] CI green on the branch — `test` and `leak-check`, PR #3.
-- [ ] The manual checkpoint above passes on real headphones. **Partial.** Step 1
-      is confirmed on hardware: with the headphones off the mark is absent from
-      the bar and leaves no gap, and the shell loads the widget with no QML
-      warning. Steps 2-5 need the headphones switched on and are untested.
+- [ ] The manual checkpoint above passes on real headphones. **3 of 5.**
+      Confirmed: the mark is absent with the headphones off and leaves no gap;
+      it returns on connect; and it survives the LDAC power-cycle in both
+      directions. Still untested: closing the popup by switching the headphones
+      off while it is open, and the missing-`cmfctl` case.

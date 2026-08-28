@@ -38,6 +38,16 @@ Item {
   // off" -- otherwise the panel would claim they are gone mid-restart.
   property bool restarting: false
 
+  // The device acks the write, applies it, and only *then* power-cycles, so the
+  // settle poll about a second later still gets an answer -- from headphones
+  // reporting the new value that have not yet left. Treating that as the
+  // confirmation ends the restart before the disconnect even arrives, and
+  // whatever was waiting on `restarting` gives up two seconds early.
+  // Measured on a Headphone Pro: write at t+0, confirmed at t+1, dropped at
+  // t+3, back at t+8. So a confirmation only counts once the drop has been
+  // seen.
+  property bool _restartDropSeen: false
+
   readonly property bool busy: statusProc.running || actionProc.running
   readonly property string displayAnc: pendingAnc !== "" ? pendingAnc : anc
   readonly property bool displayLdac: pendingLdac === -1 ? ldac : pendingLdac === 1
@@ -88,9 +98,10 @@ Item {
         && (anc === pendingAnc
             || (pendingAnc === "anc" && levels.indexOf(anc) >= 0)))
       pendingAnc = ""
-    if (pendingLdac !== -1 && ldac === (pendingLdac === 1)) {
+    if (pendingLdac !== -1 && ldac === (pendingLdac === 1) && _restartDropSeen) {
       pendingLdac = -1
       restarting = false
+      _restartDropSeen = false
       restartGuard.stop()
     }
   }
@@ -101,6 +112,7 @@ Item {
     if (!connected || actionProc.running || restarting) return
     pendingLdac = on ? 1 : 0
     restarting = true
+    _restartDropSeen = false
     restartGuard.restart()
     actionProc.command = ["cmfctl", "set", "SET_LHDC_COMMANDS", on ? "01" : "00"]
     actionProc.running = true
@@ -183,6 +195,7 @@ Item {
     onTriggered: {
       root.restarting = false
       root.pendingLdac = -1
+      root._restartDropSeen = false
     }
   }
 
@@ -214,6 +227,10 @@ Item {
       } else if (exitCode !== 0) {
         // cmfctl exits non-zero when no CMF device is connected. That is the
         // normal "headphones are off" case, not an error worth shouting about.
+        // The disconnect we asked for. Recording it is what lets the *next*
+        // confirmation be believed, rather than the one that arrived while the
+        // headphones were still here.
+        if (root.restarting) root._restartDropSeen = true
         root.connected = false
         root.battery = -1
         root.anc = ""
@@ -242,6 +259,7 @@ Item {
         root.pendingAnc = ""
         root.pendingLdac = -1
         root.restarting = false
+        root._restartDropSeen = false
         restartGuard.stop()
         root.actionStatus = String(actionErr.text || "Command failed").trim()
         clearAction.restart()
