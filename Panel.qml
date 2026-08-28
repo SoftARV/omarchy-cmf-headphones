@@ -26,8 +26,26 @@ Panel {
   readonly property string fontFamily: bar ? bar.fontFamily : Style.font.family
   readonly property color barTint: cmf.connected ? barForeground : Qt.darker(barForeground, 1.6)
 
-  implicitWidth: button.implicitWidth
+  // The mark earns its slot only while it has something to report. With the
+  // headphones away it would sit in the bar saying nothing, so it collapses and
+  // the bar closes the gap rather than keeping an invisible hole.
+  //
+  // Two states outlive the disconnect and keep it on screen. Without cmfctl,
+  // `connected` is false forever, and the popup is the only place that names
+  // the missing dependency and carries the path that installs it -- hiding the
+  // mark strands a plugin the user enabled and can no longer find. Writing the
+  // LDAC flag power-cycles the headphones on purpose, and the mark must not
+  // vanish out from under the switch that did it.
+  readonly property bool present: cmf.connected || cmf.cmfctlMissing || cmf.restarting
+
+  visible: present
+  implicitWidth: present ? button.implicitWidth : 0
   implicitHeight: button.implicitHeight
+
+  // A popup anchored to a collapsed button cannot be dismissed by clicking a
+  // button that is no longer there. It also leaves `<id> toggle` inert while
+  // hidden, since open() would anchor to nothing.
+  onPresentChanged: if (!present && opened) close()
 
   readonly property var ancOptions: [
     { label: "ANC", value: "anc" },
