@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "id": "softarv.cmf-headphones",
   "name": "CMF Headphones",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "author": "Miguel Rincon",
   "license": "MIT",
   "description": "Battery, noise mode and LDAC for a CMF Headphone Pro, driven by the cmfctl CLI over Bluetooth RFCOMM.",

@@ -1,6 +1,6 @@
 # Spec — hide the bar mark while the headphones are away
 
-Status: approved · Target: `0.2.0` (behaviour change, `0.x`)
+Status: approved, released as `0.2.0` · behaviour change on `0.x`
 Branch: `feat/hide-when-disconnected`, one commit per logical change.
 
 One capability, one module, no dependency graph: the change lives in
@@ -90,7 +90,7 @@ omarchy restart shell            # NOT rescanPlugins -- see below
 | `test/bar_test.sh` | New. Owns what the bar slot must do. |
 | `test/deps_test.sh` | One added assertion: the missing-CLI escape hatch. That file already owns this invariant. |
 | `README.md` | The line "dims when the headphones are off" is now wrong. Rewrite, and note the IPC behaviour. |
-| `CHANGELOG.md` | Entry under `## [Unreleased]` → `### Changed`. The `[0.1.0]` entry is history and is not rewritten. |
+| `CHANGELOG.md` | Cut as `## [0.2.0]`, dated. The `[0.1.0]` entry is history and is not rewritten. |
 | `docs/` | New; this file lives here. See §4b. |
 
 `manifest.json`, `CmfService.qml`, `NothingHeadphoneIcon.qml`, `install.sh`:

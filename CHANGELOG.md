@@ -10,6 +10,8 @@ versions.
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-08-28
+
 ### Changed
 
 - **The bar mark appears only when there is something to report.** It used to
@@ -100,5 +102,6 @@ noise control and the codec switch in the popup. No phone app involved.
   a linked install would validate as broken and the shell would quietly never
   load it.
 
-[Unreleased]: https://github.com/SoftARV/omarchy-cmf-headphones/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/SoftARV/omarchy-cmf-headphones/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/SoftARV/omarchy-cmf-headphones/releases/tag/v0.2.0
 [0.1.0]: https://github.com/SoftARV/omarchy-cmf-headphones/releases/tag/v0.1.0
