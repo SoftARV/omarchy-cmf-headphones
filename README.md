@@ -22,8 +22,8 @@ title falls back to the bar's font; everything else is unaffected.
 ## Install
 
 ```bash
-git clone <this repo> ~/.config/omarchy/plugins/nec.cmf-headphones
-omarchy bar put nec.cmf-headphones --before omarchy.audio
+git clone <this repo> ~/.config/omarchy/plugins/softarv.cmf-headphones
+omarchy bar put softarv.cmf-headphones --before omarchy.audio
 omarchy restart shell
 ```
 
