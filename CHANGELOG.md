@@ -24,6 +24,20 @@ versions.
   popup closes with the mark, and `omarchy-shell <id> toggle` is inert while
   it is hidden.
 
+### Fixed
+
+- **A restart now ends when the headphones come back, not a second after they
+  are asked to leave.** Toggling LDAC power-cycles the device, but it acks the
+  write, applies it, and only *then* restarts — so the poll about a second
+  later still got an answer, from headphones reporting the new value that had
+  not gone anywhere yet. That was taken as the confirmation and ended the
+  restart roughly two seconds before the disconnect arrived. Measured: write at
+  t+0, confirmed at t+1, dropped at t+3, back at t+8. A confirmation is now
+  believed only once the drop has actually been observed. This also makes good
+  on what the README already promised — the panel really does say "Restarting…"
+  for the whole window, and the switch really is held inert until the
+  headphones return.
+
 ### Added
 
 - **`docs/SPEC.md`.** Specs now live under `docs/`, matching the layout of the

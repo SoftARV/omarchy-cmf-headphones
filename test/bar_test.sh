@@ -73,6 +73,41 @@ else
        "expected: onPresentChanged: if (!present && opened) close()"
 fi
 
+# --- the mechanism the LDAC term above depends on --------------------------
+# Lives here rather than with the rest of CmfService because the bar term is
+# why it matters: `restarting` is the only thing holding the mark up during the
+# power-cycle, so clearing it early hides the widget mid-flip.
+#
+# The device acks the write, applies it, and only then power-cycles, so the
+# settle poll answers about a second later from headphones that have not left
+# yet. Measured: write t+0, confirmed t+1, dropped t+3, back at t+8. Believing
+# that first confirmation ended the restart two seconds before the disconnect.
+service="$ROOT/CmfService.qml"
+
+if grep -qE 'pendingLdac !== -1 && ldac === \(pendingLdac === 1\) && _restartDropSeen' "$service"; then
+  pass "a restart ends only once the disconnect has actually been seen"
+else
+  fail "a restart ends only once the disconnect has actually been seen" \
+       "expected _restartDropSeen to gate the clear in applyStatus"
+fi
+
+if grep -qE 'if \(root\.restarting\) root\._restartDropSeen = true' "$service"; then
+  pass "the failed status during a restart is what records the drop"
+else
+  fail "the failed status during a restart is what records the drop" \
+       "expected the drop to be recorded in statusProc.onExited"
+fi
+
+# Every path that abandons a restart must disarm the flag too, or the next
+# power-cycle inherits a drop it never saw and ends on the first poll again.
+clears=$(grep -c '_restartDropSeen = false' "$service")
+if (( clears >= 3 )); then
+  pass "every path that abandons a restart disarms the flag ($clears sites)"
+else
+  fail "every path that abandons a restart disarms the flag" \
+       "expected at least 3 reset sites (setLdac, restartGuard, actionProc); found $clears"
+fi
+
 # --- the README still describes what the bar does --------------------------
 # The 0.1.0 README said the mark "dims when the headphones are off". That is
 # now only true of the two states above, and a stale sentence here is the kind
