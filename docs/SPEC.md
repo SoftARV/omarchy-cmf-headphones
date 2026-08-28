@@ -91,24 +91,55 @@ omarchy restart shell            # NOT rescanPlugins -- see below
 | `test/deps_test.sh` | One added assertion: the missing-CLI escape hatch. That file already owns this invariant. |
 | `README.md` | The line "dims when the headphones are off" is now wrong. Rewrite, and note the IPC behaviour. |
 | `CHANGELOG.md` | Entry under `## [Unreleased]` → `### Changed`. The `[0.1.0]` entry is history and is not rewritten. |
-| `docs/` | New. This file lives here, matching the sibling `cmfctl` repo, which `CLAUDE.md` already links to as `docs/SPEC.md`. Landed as its own commit ahead of the behaviour change. |
+| `docs/` | New; this file lives here. See §4b. |
 
 `manifest.json`, `CmfService.qml`, `NothingHeadphoneIcon.qml`, `install.sh`:
 untouched.
 
-### Why only this file moves
+## 4b. Project organization
 
-`README.md`, `CHANGELOG.md` and `LICENSE` are read from the repo root by
-tooling — `test/docs_test.sh` among it — and `CLAUDE.md` / `CLAUDE.local.md`
-are only loaded from the root. `docs/` is therefore where *specs* live from
-here on, not a general relocation.
+Structural tidying rides along with the feature that motivates it, rather than
+happening as a separate errand. A reorganization done off to the side gets no
+acceptance criteria and no review; folded in here it gets both, and a reader
+can see what this work changes structurally and what it deliberately leaves
+alone.
 
-Deliberately **not** done: moving any `.qml` into a subdirectory. `install.sh:73`
-sweeps root-level `*.qml` and `*.js` only, so a nested component would be
-dropped from a dev-checkout install without any test noticing — the same silent
-failure `CLAUDE.md` records against `pip-plugin`. That reorganization needs a
-recursive sweep and a test proving a nested file lands, and neither is in scope
-here.
+### Carried by this work
+
+**Specs move to `docs/`.** The sibling `cmfctl` repo keeps its design under
+`docs/SPEC.md` and `CLAUDE.md` already links there, so the same layout means
+one place to look across both repos. Lands as its own commit, ahead of any
+behaviour change.
+
+Only specs move. `README.md`, `CHANGELOG.md` and `LICENSE` are read from the
+repo root by tooling — `test/docs_test.sh` among it — and `CLAUDE.md` /
+`CLAUDE.local.md` are only loaded from the root.
+
+### Deferred, with the reason
+
+Both of these are real and worth doing; neither is in scope here, and the first
+blocks the second.
+
+**Harden the `install.sh` file sweep.** `install.sh:73` sweeps root-level
+`*.qml` and `*.js` only. Any component moved into a subdirectory would be
+dropped from a dev-checkout install with nothing to catch it — `install_test.sh`
+checks the four current filenames, so it would pass. This is the same silent
+failure `CLAUDE.md` records against `pip-plugin`, where a hardcoded list
+shipped without the QML that drew the widget and the only symptom was a line on
+the shell's console. Needs a recursive sweep plus a test proving a nested file
+actually lands.
+
+**Split `Panel.qml`.** At 283 lines it is the largest file in the repo, and
+the popup `Column` opening at line 132 runs to the end of the file, nested
+three deep inside the bar-button file. Extracting the popup body would leave `Panel.qml` as what it claims to
+be: bar slot, service wiring, popup mount. Peer plugins already do this —
+`yeleticc.vpn` and `io.github.rawritude.dgpu-control` both split theirs. Blocked
+on the sweep above if the extracted file goes in `components/`; unblocked if it
+stays at the root, which the sweep already handles.
+
+**Not deferred, rejected:** moving `manifest.json` out of the root. `omarchy
+plugin add` clones a repo and reads it from there, so moving it breaks the only
+supported install path.
 
 ## 5. Code style
 
@@ -187,10 +218,15 @@ re-runs and a change looks like it did not work.
 
 ## 8. Acceptance criteria
 
-- [ ] `./test/run.sh` green, including the five new assertions.
-- [ ] `omarchy plugin validate` passes on both the repo and the installed copy.
+- [x] `./test/run.sh` green — 93 assertions across 6 files.
+- [x] `omarchy plugin validate` passes on both the repo and the installed copy.
+- [x] README no longer claims the mark dims when the headphones are off.
+- [x] `## [Unreleased]` describes the change and why.
+- [x] The docs move is its own commit, with no behaviour change in it.
+- [x] The organization this work carries is written down, and what it defers
+      says why — §4b.
 - [ ] CI green on the branch.
-- [ ] README no longer claims the mark dims when the headphones are off.
-- [ ] `## [Unreleased]` describes the change and why.
-- [ ] The docs move is its own commit, with no behaviour change in it.
-- [ ] The manual checkpoint above passes on real headphones.
+- [ ] The manual checkpoint above passes on real headphones. **Partial.** Step 1
+      is confirmed on hardware: with the headphones off the mark is absent from
+      the bar and leaves no gap, and the shell loads the widget with no QML
+      warning. Steps 2-5 need the headphones switched on and are untested.
