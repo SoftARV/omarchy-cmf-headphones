@@ -1,0 +1,57 @@
+# The suite runs without a compositor and without headphones, so all of it
+# runs here. One thing does not: omarchy-plugin-validate is not installable on
+# a bare runner, so validate_test.sh skips itself -- loudly -- and the jq
+# subset in manifest_test.sh stands in for it.
+#
+# That subset is a mirror, not the authority. Run
+#   omarchy plugin validate .
+# on a real machine before releasing; a rule Omarchy adds later will be caught
+# there first.
+name: ci
+
+on:
+  push:
+    branches: [main, "reorg/**"]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install tools
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq jq shellcheck
+
+      - name: Test
+        run: ./test/run.sh
+
+      - name: Report what could not run here
+        # Making the gap visible in the log matters more than the check that
+        # cannot run: a green tick that quietly skipped the real validator
+        # would read as more assurance than it is.
+        run: |
+          echo "omarchy-plugin-validate is unavailable on this runner."
+          echo "manifest_test.sh ran the jq subset instead."
+          echo "Run 'omarchy plugin validate .' on a machine with Omarchy before releasing."
+
+  leak-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: No MAC address anywhere in history
+        run: |
+          if git grep -InE '([0-9A-Fa-f]{2}:){5}[0-9A-Fa-f]{2}' \
+               $(git rev-list --all) -- . ; then
+            echo "::error::a device address is committed somewhere in history"
+            exit 1
+          fi
+          echo "clean"
