@@ -22,6 +22,11 @@ Item {
   property string lastError: ""
   property string actionStatus: ""
 
+  // Whether the CLI this widget renders is installed at all. Kept separate
+  // from `connected`, because "the tool is missing" and "the headphones are
+  // off" want opposite advice and only one of them is the user's Bluetooth.
+  property bool cmfctlMissing: false
+
   // Set while a write is in flight so the UI shows the intended mode
   // immediately instead of waiting a poll cycle for the device to confirm.
   property string pendingAnc: ""
@@ -108,7 +113,22 @@ Item {
     actionProc.running = true
   }
 
-  Component.onCompleted: refresh()
+  Component.onCompleted: {
+    probe.running = true
+    refresh()
+  }
+
+  // Presence is probed rather than inferred. Quickshell surfaces no dependable
+  // exit code for a binary that fails to *start*, so a missing cmfctl and a
+  // failing one are indistinguishable at statusProc -- which is exactly how a
+  // user without the CLI came to be told their headphones were disconnected.
+  // `sh` is always present, so the probe itself cannot fail to start.
+  Process {
+    id: probe
+    running: false
+    command: ["sh", "-c", "command -v cmfctl >/dev/null 2>&1"]
+    onExited: function (exitCode) { root.cmfctlMissing = exitCode !== 0 }
+  }
 
   Timer {
     id: poll
@@ -202,6 +222,9 @@ Item {
         // pendingLdac and restarting deliberately survive: this disconnect is
         // the restart we asked for, and they clear when the device returns.
         root.lastError = String(statusErr.text || root._statusErrText || "").trim()
+        // A failed status is the only hint that the CLI may have gone away, so
+        // re-check rather than trusting the answer from startup.
+        if (!probe.running) probe.running = true
       }
       root._statusText = ""
       root._statusErrText = ""

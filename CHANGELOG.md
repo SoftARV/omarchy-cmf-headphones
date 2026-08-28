@@ -39,6 +39,15 @@ noise control and the codec switch in the popup. No phone app involved.
   `o` off, `l` toggle LDAC, `r` refresh.
 - Configurable poll intervals — one while the popup is closed, a faster one
   while it is open. Both carry a description in the settings panel.
+- **A missing `cmfctl` says so by name.** The widget renders what the CLI
+  reports and has no protocol of its own, so without it the popup names the
+  missing dependency and shows the command that installs it, rather than
+  reporting the headphones as disconnected. Presence is probed with
+  `sh -c 'command -v cmfctl'`; Quickshell surfaces no dependable exit code for
+  a binary that fails to *start*, so a missing CLI and a failing one are
+  otherwise indistinguishable.
+- `scripts/install-deps.sh`, which fetches and installs `cmfctl`. `install.sh`
+  runs it when the CLI is absent.
 - `install.sh`, which copies the runtime files into the plugins directory. Run
   from an `omarchy plugin add` checkout it copies nothing, leaving that
   directory a git checkout so `omarchy plugin update` keeps working.
