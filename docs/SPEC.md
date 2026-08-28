@@ -225,7 +225,7 @@ re-runs and a change looks like it did not work.
 - [x] The docs move is its own commit, with no behaviour change in it.
 - [x] The organization this work carries is written down, and what it defers
       says why — §4b.
-- [ ] CI green on the branch.
+- [x] CI green on the branch — `test` and `leak-check`, PR #3.
 - [ ] The manual checkpoint above passes on real headphones. **Partial.** Step 1
       is confirmed on hardware: with the headphones off the mark is absent from
       the bar and leaves no gap, and the shell loads the widget with no QML
