@@ -38,13 +38,16 @@ noise control and the codec switch in the popup. No phone app involved.
 - Keyboard control while the popup is focused: `a` ANC, `t` transparency,
   `o` off, `l` toggle LDAC, `r` refresh.
 - Configurable poll intervals — one while the popup is closed, a faster one
-  while it is open.
+  while it is open. Both carry a description in the settings panel.
 - `install.sh`, which copies the runtime files into the plugins directory. Run
   from an `omarchy plugin add` checkout it copies nothing, leaving that
   directory a git checkout so `omarchy plugin update` keeps working.
 
 ### Notes
 
+- **The bar shows the mark alone**, with no battery percentage beside it.
+  Battery, noise mode and codec all live in the popup, where there is room for
+  them without crowding the bar.
 - State is gathered with a single `cmfctl status --json` call. Each invocation
   opens a fresh RFCOMM link and the connect dominates the cost, so one call per
   value would be both slower and prone to `EBUSY`.

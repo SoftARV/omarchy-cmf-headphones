@@ -65,7 +65,9 @@ the phone app.
 |-----|---------|--|
 | `idlePollSec` | 120 | refresh interval while the popup is closed |
 | `activePollSec` | 5 | refresh interval while it is open |
-| `showBattery` | true | reserved — the bar currently shows the mark only |
+
+The bar shows the mark alone. Battery, noise mode and codec are in the popup,
+where there is room for them.
 
 ## Notes
 
