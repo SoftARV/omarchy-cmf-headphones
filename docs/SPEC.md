@@ -190,6 +190,10 @@ re-runs and a change looks like it did not work.
   hardware across three flips in both directions; `restarting` held for ~9s
   each time, where before the fix it collapsed at t+1s.
 - `mv $(command -v cmfctl){,.bak}` → mark stays, popup names the missing CLI.
+  Needs `omarchy restart shell` to see it promptly: the probe runs from
+  `Component.onCompleted`, and otherwise the re-probe waits for a status to
+  fail on the idle poll, up to `idlePollSec` away. Put the binary back and
+  restart again afterwards.
 
 ## 7. Boundaries
 
@@ -234,8 +238,10 @@ re-runs and a change looks like it did not work.
 - [x] The organization this work carries is written down, and what it defers
       says why — §4b.
 - [x] CI green on the branch — `test` and `leak-check`, PR #3.
-- [ ] The manual checkpoint above passes on real headphones. **3 of 5.**
-      Confirmed: the mark is absent with the headphones off and leaves no gap;
-      it returns on connect; and it survives the LDAC power-cycle in both
-      directions. Still untested: closing the popup by switching the headphones
-      off while it is open, and the missing-`cmfctl` case.
+- [x] The manual checkpoint above passes on real headphones. **5 of 5.** The
+      mark is absent with the headphones off and leaves no gap; it returns on
+      connect; it survives the LDAC power-cycle in both directions; an open
+      popup closes when the headphones go; and with `cmfctl` moved off `PATH`
+      the mark stays, dimmed, with the popup naming the dependency and showing
+      the install path while the noise and audio controls are hidden rather
+      than greyed out.
